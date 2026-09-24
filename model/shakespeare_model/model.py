@@ -205,6 +205,19 @@ class ShakespeareModel(nn.Module):
         self.block_size = block_size
         self.head_dim = n_embd // n_head
 
+        # Saved in the checkpoint beside the weights, so a model can be
+        # rebuilt at the right size without the config it was trained with.
+        # Dropout is left out: it only matters while training.
+        self.shape = {
+            "vocab_size": vocab_size,
+            "block_size": block_size,
+            "n_embd": n_embd,
+            "n_layer": n_layer,
+            "n_head": n_head,
+            "n_kv_head": n_kv_head,
+            "ffn_hidden": ffn_hidden,
+        }
+
         self.token_embedding = nn.Embedding(vocab_size, n_embd)
         self.blocks = nn.ModuleList()
         for _ in range(n_layer):
