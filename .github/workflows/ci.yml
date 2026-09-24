@@ -1,0 +1,79 @@
+# Runs on every pull request and every push to main.
+#
+# Two independent jobs, so a frontend failure does not hide a Python one.
+# Neither needs a GPU, a database or the network beyond installing packages:
+# the tests build tiny models in memory.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same branch. Pushing a fix should not queue
+# behind the run for the commit it fixes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python - lint, tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # --frozen: fail if the lockfile disagrees with the manifests rather
+      # than resolving something new, so CI tests the versions committed.
+      # torch comes from PyTorch's CPU index (see pyproject.toml), not the
+      # 2.5 GB CUDA build.
+      - name: Install
+        run: uv sync --all-packages --frozen
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format
+        run: uv run ruff format --check .
+
+      - name: Model tests
+        working-directory: model
+        run: uv run pytest
+
+      - name: Backend tests
+        working-directory: backend
+        run: uv run pytest
+
+  frontend:
+    name: Frontend - lint, tests, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      # Not covered by the tests: npm test and the production build resolve
+      # modules differently, so a passing suite does not prove the page builds.
+      - name: Build
+        run: npm run build
