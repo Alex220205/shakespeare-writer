@@ -6,7 +6,8 @@ requires-python = ">=3.12"
 
 # The model imports nothing web-related. These two lines are the whole list.
 dependencies = [
-    # 2.9 is the first release with torch.optim.Muon.
+    # 2.9 is the first release with torch.optim.Muon, which tests/test_muon.py
+    # checks shakespeare_model/muon.py against.
     "torch>=2.9",
     # Hugging Face's Rust tokenizer library: trains the BPE vocabulary in about
     # a second, where a pure-Python BPE takes minutes on this corpus.

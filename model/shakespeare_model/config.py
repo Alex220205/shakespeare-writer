@@ -49,8 +49,8 @@ DROPOUT = 0.2  # a 1 MB corpus is easy to memorise
 
 # --- Training -----------------------------------------------------------------
 BATCH_SIZE = 16
-MAX_ITERS = 1800
-EVAL_INTERVAL = 150
+MAX_ITERS = 1400  # about 1.5 seconds each on an i3-1215U
+EVAL_INTERVAL = 200
 EVAL_ITERS = 20  # batches averaged per estimate; train.py used 200 on a GPU
 
 # Warmup-stable-decay: ramp up over WARMUP_ITERS, hold, then fall linearly to
