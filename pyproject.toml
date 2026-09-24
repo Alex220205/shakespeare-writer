@@ -1,0 +1,52 @@
+# uv workspace root.
+#
+# This file defines no project of its own. It ties `model/` and `backend/` into
+# one workspace with a single lockfile, and holds the tool configuration that
+# applies across both.
+
+[tool.uv.workspace]
+members = ["model"]
+
+[tool.uv]
+# Copy files out of the cache instead of hardlinking them. uv hardlinks by
+# default, and OneDrive's filter driver rejects that with "os error 396: The
+# cloud operation cannot be performed on a file with incompatible hardlinks".
+# Copying is marginally slower and always works.
+link-mode = "copy"
+
+# torch comes from PyTorch's own CPU-only index. On Linux, the torch wheel on
+# PyPI bundles CUDA and is around 2.5 GB, which CI would download on every run
+# for a model that trains on a laptop CPU. `explicit` means nothing else is
+# looked up there.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+# Repo-wide tooling, attached to the workspace rather than to either member.
+[dependency-groups]
+dev = [
+    "ruff>=0.14",
+]
+
+# --- ruff: lint + format ------------------------------------------------------
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # bugbear
+    "SIM", # simplify
+]
+
+[tool.ruff.lint.isort]
+# Without this, isort files `app` and `shakespeare_model` under third-party.
+known-first-party = ["app", "shakespeare_model"]

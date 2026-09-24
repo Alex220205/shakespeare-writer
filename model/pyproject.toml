@@ -1,0 +1,32 @@
+[project]
+name = "shakespeare-model"
+version = "0.1.0"
+description = "A small 2026-style language model trained on Tiny Shakespeare. No web code."
+requires-python = ">=3.12"
+
+# The model imports nothing web-related. These two lines are the whole list.
+dependencies = [
+    # 2.9 is the first release with torch.optim.Muon.
+    "torch>=2.9",
+    # Hugging Face's Rust tokenizer library: trains the BPE vocabulary in about
+    # a second, where a pure-Python BPE takes minutes on this corpus.
+    "tokenizers>=0.22",
+    # Not imported here. torch prints "Failed to initialize NumPy" on every
+    # import without it, which buries the first lines of every training log.
+    "numpy>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["shakespeare_model"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
