@@ -5,7 +5,7 @@
 # applies across both.
 
 [tool.uv.workspace]
-members = ["model"]
+members = ["backend", "model"]
 
 [tool.uv]
 # Copy files out of the cache instead of hardlinking them. uv hardlinks by

@@ -1,0 +1,35 @@
+[project]
+name = "shakespeare-writer-backend"
+version = "0.1.0"
+description = "Web service for shakespeare-writer: streams the model's text to the page."
+requires-python = ">=3.12"
+
+dependencies = [
+    # 0.135 is the first release with native Server-Sent Events (fastapi.sse).
+    "fastapi>=0.135",
+    "uvicorn[standard]>=0.32",
+    "pydantic-settings>=2.6",
+    "shakespeare-model",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    # FastAPI's TestClient is Starlette's, which now asks for httpx2 (Pydantic's
+    # continuation of httpx) and warns on every run if given plain httpx.
+    "httpx2",
+]
+
+# The model is consumed from the workspace rather than from PyPI, so edits to
+# it are picked up without reinstalling.
+[tool.uv.sources]
+shakespeare-model = { workspace = true }
+
+# An application, not a library. Nothing installs it; uvicorn runs it.
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Makes `app` importable when pytest runs from backend/.
+pythonpath = ["."]
