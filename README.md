@@ -36,11 +36,20 @@ Both models trained on the same laptop CPU (Intel i3-1215U, no GPU) from the sam
 | Vocabulary | 65 characters | 1024 BPE tokens, 2.4 characters each |
 | Parameters | 0.28M | 1.31M |
 | Validation bits per byte after 21 minutes | 3.18 (step 1000) | **2.19** (step 600) |
-| Validation bits per byte, fully trained | Not yet measured | **2.08** after 50 minutes (1400 steps) |
+| Validation bits per byte, fully trained | 2.64 after 1 h 47 min (5000 steps) | **2.08** after 50 minutes (1400 steps) |
 
-Given the same 21 minutes, the new model is a full bit per byte less surprised by unseen text. It is also bigger, and the table is honest about that: the comparison is what each design achieves in the same time on the same hardware, which is the constraint that decided its size.
+Given the same 21 minutes, the new model is a full bit per byte less surprised by unseen text. Fully trained, it ends 0.56 bits per byte lower in under half the time. It is also bigger, and the table is honest about that: the comparison is what each design achieves on the same hardware in the time it takes, which is the constraint that decided its size.
 
-A sample from the trained model, prompted with `ROMEO:`:
+The difference shows in the writing. The baseline, fully trained, mostly invents words:
+
+```
+DORTHARS:
+For word! now it spelosf in crrutime!
+EON, in cangued to off isdier: yet she. sin't:
+The give thee reem facencsles
+```
+
+Shakespeare Writer, prompted with `ROMEO:`:
 
 ```
 ROMEO:
