@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 import torch
 
-from shakespeare_model.config import DATA_PATH
+from shakespeare_model.config import CHECKPOINT_PATH, DATA_PATH
 from shakespeare_model.model import ShakespeareModel
 from shakespeare_model.tokenizer import train_tokenizer
 from shakespeare_model.writer import (
@@ -110,3 +110,15 @@ def test_a_saved_checkpoint_writes_the_same_text_when_loaded(
     reloaded = "".join(loaded.stream("JULIET:\n", 15, 0.8))
     assert reloaded == original
     assert loaded.model.output.weight is loaded.model.token_embedding.weight
+
+
+def test_the_committed_checkpoint_still_loads_and_writes() -> None:
+    """The trained model in the repository works with the current code."""
+    # The web service serves this file. A change to the model's shape or to
+    # the checkpoint format would break the demo while every other test,
+    # which builds its own tiny model, still passed.
+    writer = Writer.from_checkpoint(CHECKPOINT_PATH)
+
+    reply = "".join(writer.stream("ROMEO:\n", max_new_tokens=10, temperature=0.8))
+
+    assert reply != ""
