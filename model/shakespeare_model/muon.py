@@ -56,6 +56,7 @@ class Muon(torch.optim.Optimizer):
     def __init__(
         self, params, lr: float, momentum: float = 0.95, weight_decay: float = 0.0
     ):
+        """Register the matrices to optimise and their settings."""
         defaults = {"lr": lr, "momentum": momentum, "weight_decay": weight_decay}
         super().__init__(params, defaults)
 

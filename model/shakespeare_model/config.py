@@ -37,7 +37,7 @@ SEED = 1337
 VOCAB_SIZE = 1024
 
 # --- Model shape --------------------------------------------------------------
-# Sized to train in about 35 minutes on a laptop CPU: 1.3M parameters, about
+# Sized to train in about 50 minutes on a laptop CPU: 1.3M parameters, about
 # five times train.py's.
 BLOCK_SIZE = 256  # tokens of context, about 600 characters
 N_EMBD = 128
@@ -49,7 +49,7 @@ DROPOUT = 0.2  # a 1 MB corpus is easy to memorise
 
 # --- Training -----------------------------------------------------------------
 BATCH_SIZE = 16
-MAX_ITERS = 1400  # about 1.5 seconds each on an i3-1215U
+MAX_ITERS = 1400  # about 2 seconds each on an i3-1215U
 EVAL_INTERVAL = 200
 EVAL_ITERS = 20  # batches averaged per estimate; train.py used 200 on a GPU
 

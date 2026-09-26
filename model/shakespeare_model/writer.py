@@ -126,6 +126,7 @@ class Writer:
     """A trained model and its tokenizer, ready to continue a prompt."""
 
     def __init__(self, model: ShakespeareModel, tokenizer: Tokenizer):
+        """Keep the model and the tokenizer that turns its ids into text."""
         self.model = model
         self.tokenizer = tokenizer
 

@@ -31,7 +31,8 @@ def tiny_writer() -> Writer:
     torch.manual_seed(0)
     model = ShakespeareModel(
         vocab_size=tokenizer.get_vocab_size(),
-        # As large as the real model's, so max_new_tokens up to 200 still fits.
+        # The real model's context size, so long replies re-read their text
+        # at the same point they would in the running service.
         block_size=256,
         n_embd=16,
         n_layer=1,

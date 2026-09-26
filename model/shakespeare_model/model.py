@@ -77,6 +77,7 @@ class Attention(nn.Module):
     """Causal self-attention with grouped-query heads, QK-norm and RoPE."""
 
     def __init__(self, n_embd: int, n_head: int, n_kv_head: int, dropout: float):
+        """Create the query, key, value and output projections and the QK-norms."""
         super().__init__()
         self.n_head = n_head
         self.n_kv_head = n_kv_head
@@ -138,6 +139,7 @@ class FeedForward(nn.Module):
     """SwiGLU: a feed-forward layer where one projection gates another."""
 
     def __init__(self, n_embd: int, hidden: int, dropout: float):
+        """Create the gate, up and down projections."""
         super().__init__()
         self.w_gate = nn.Linear(n_embd, hidden, bias=False)
         self.w_up = nn.Linear(n_embd, hidden, bias=False)
@@ -157,6 +159,7 @@ class Block(nn.Module):
     def __init__(
         self, n_embd: int, n_head: int, n_kv_head: int, ffn_hidden: int, dropout: float
     ):
+        """Create the attention and feed-forward layers, each with its own norm."""
         super().__init__()
         self.attention_norm = nn.RMSNorm(n_embd)
         self.attention = Attention(n_embd, n_head, n_kv_head, dropout)
@@ -199,9 +202,10 @@ class ShakespeareModel(nn.Module):
         ffn_hidden: int,
         dropout: float = 0.0,
     ):
+        """Create the embedding, the blocks and the tied output layer."""
         super().__init__()
         # The longest sequence training ever showed the model. writer.py reads
-        # it to keep prompt plus reply inside what the model has learned.
+        # it to know when the cache is full and the text must be re-read.
         self.block_size = block_size
         self.head_dim = n_embd // n_head
 
