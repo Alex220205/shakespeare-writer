@@ -88,6 +88,13 @@ input[type='range'] {
   accent-color: var(--accent);
 }
 
+.hint {
+  margin: 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--ink-faded);
+}
+
 .actions {
   display: flex;
   gap: 0.5rem;

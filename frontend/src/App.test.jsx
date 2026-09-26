@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import App from './App'
@@ -47,6 +47,7 @@ test('streams text into the story as it arrives, then allows another', async () 
   await user.click(screen.getByRole('button', { name: 'Generate' }))
   const stream = latestStream()
   expect(stream.url).toContain('prompt=ROMEO%3A%0A')
+  expect(stream.url).toContain('length=500')
   expect(screen.getByRole('button', { name: 'Generate' })).toBeDisabled()
 
   sendText(stream, 'But')
@@ -58,6 +59,19 @@ test('streams text into the story as it arrives, then allows another', async () 
   act(() => stream.emit('done', '""'))
   expect(stream.closed).toBe(true)
   expect(screen.getByRole('button', { name: 'Generate' })).toBeEnabled()
+})
+
+test('the length slider sets how much the model is asked to write', async () => {
+  const user = userEvent.setup()
+  render(<App />)
+  const slider = screen.getByRole('slider', { name: /length/i })
+
+  // A range input has no typing interaction; change is what dragging fires.
+  fireEvent.change(slider, { target: { value: '1200' } })
+  await user.click(screen.getByRole('button', { name: 'Generate' }))
+
+  expect(screen.getByText('1200')).toBeInTheDocument()
+  expect(latestStream().url).toContain('length=1200')
 })
 
 test('Stop closes the stream and keeps what was written', async () => {

@@ -17,6 +17,7 @@ export default function App() {
   const [modelStatus, setModelStatus] = useState('checking')
   const [prompt, setPrompt] = useState(PRESET_PROMPTS[0].text)
   const [temperature, setTemperature] = useState(0.8)
+  const [length, setLength] = useState(500)
   const [storyPrompt, setStoryPrompt] = useState('')
   const [storyText, setStoryText] = useState('')
   const [isWriting, setIsWriting] = useState(false)
@@ -39,7 +40,7 @@ export default function App() {
     setStoryText('')
     setError(null)
     setIsWriting(true)
-    sourceRef.current = streamText(prompt, temperature, {
+    sourceRef.current = streamText(prompt, temperature, length, {
       onText: (piece) => setStoryText((current) => current + piece),
       onDone: () => setIsWriting(false),
       onError: () => {
@@ -103,6 +104,23 @@ export default function App() {
           onChange={(event) => setTemperature(Number(event.target.value))}
           disabled={isWriting}
         />
+
+        <label htmlFor="length">
+          Length <output htmlFor="length">{length}</output> characters
+        </label>
+        <input
+          id="length"
+          type="range"
+          min="100"
+          max="1500"
+          step="100"
+          value={length}
+          onChange={(event) => setLength(Number(event.target.value))}
+          disabled={isWriting}
+        />
+        <p className="hint">
+          The model always finishes the speech it is in, so it may run a little over.
+        </p>
 
         <div className="actions">
           <button

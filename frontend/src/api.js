@@ -38,6 +38,8 @@ export async function fetchHealth() {
  *
  * @param {string} prompt Text for the model to continue.
  * @param {number} temperature 0.1 to 1.5; higher is more inventive.
+ * @param {number} length 100 to 1500: at least this many characters. The
+ *   model then finishes the speech it is in, so the reply runs a little over.
  * @param {object} handlers
  * @param {(text: string) => void} handlers.onText Called with each new piece.
  * @param {() => void} handlers.onDone Called once the model has finished.
@@ -45,8 +47,12 @@ export async function fetchHealth() {
  *   or breaks. The browser does not say why, so neither can this.
  * @returns {EventSource} Close it to stop the model early.
  */
-export function streamText(prompt, temperature, { onText, onDone, onError }) {
-  const query = new URLSearchParams({ prompt, temperature: String(temperature) })
+export function streamText(prompt, temperature, length, { onText, onDone, onError }) {
+  const query = new URLSearchParams({
+    prompt,
+    temperature: String(temperature),
+    length: String(length),
+  })
   const source = new EventSource(`${BASE_URL}/generate?${query}`)
 
   // Each piece is JSON-encoded on the wire so newlines and leading spaces
