@@ -78,6 +78,18 @@ def test_a_reply_ends_only_once_long_enough_and_between_speeches() -> None:
     assert reply_is_finished(long_and_ended, length=20)
 
 
+def test_a_speaker_name_with_nothing_said_is_not_an_ending() -> None:
+    """A reply never ends on a name followed by a blank line."""
+    ends_on_bare_name = "ROMEO:\nO, let's away.\n\nJULIET:\n\n"
+    ends_on_a_line = "ROMEO:\nO, let's away.\n\n"
+    continues_the_prompt = "O, let's away.\n\n"
+
+    assert not reply_is_finished(ends_on_bare_name, length=10)
+    assert reply_is_finished(ends_on_a_line, length=10)
+    # The prompt held the name, so the reply is the speech itself.
+    assert reply_is_finished(continues_the_prompt, length=10)
+
+
 def test_a_speech_that_never_ends_is_cut_off_eventually() -> None:
     """A model that never writes a blank line still stops, MAX_OVERRUN past length."""
     endless = "la " * 1000

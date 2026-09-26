@@ -102,7 +102,14 @@ def reply_is_finished(reply: str, length: int) -> bool:
     """Return True once the reply is long enough and its last speech has ended."""
     if len(reply) >= length + MAX_OVERRUN_CHARACTERS:
         return True
-    return len(reply) >= length and reply.endswith("\n\n")
+    if len(reply) < length or not reply.endswith("\n\n"):
+        return False
+
+    # A speaker's name on its own, as in "JULIET:" then a blank line, is not a
+    # finished speech: nobody has said anything yet.
+    last_speech = reply.rstrip("\n").split("\n\n")[-1]
+    is_bare_name = "\n" not in last_speech and last_speech.endswith(":")
+    return not is_bare_name
 
 
 def save_checkpoint(path: Path, model: ShakespeareModel, tokenizer: Tokenizer) -> None:

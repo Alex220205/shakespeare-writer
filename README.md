@@ -80,7 +80,7 @@ uv sync --all-packages
 
 # Terminal 1: the API, on http://localhost:8100
 cd backend
-uv run uvicorn app.main:app --port 8100
+uv run uvicorn app.main:app --port 8100 --reload --reload-dir . --reload-dir ../model
 
 # Terminal 2: the page, on http://localhost:5180
 cd frontend
@@ -90,7 +90,7 @@ npm run dev
 
 Open http://localhost:5180, pick an opening or type your own, and press Generate. The API's own documentation is at http://localhost:8100/docs.
 
-The ports are 8100 and 5180 rather than uvicorn's and Vite's defaults (8000 and 5173), so the project can run beside others that use those.
+The ports are 8100 and 5180 rather than uvicorn's and Vite's defaults (8000 and 5173), so the project can run beside others that use those. `--reload` restarts the API whenever code in `backend/` or `model/` changes; the page reloads itself the same way. Without it, an API left running keeps serving the code it started with.
 
 ### Retraining
 

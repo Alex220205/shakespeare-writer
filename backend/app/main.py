@@ -3,6 +3,8 @@ FastAPI entry point: builds the application, applies CORS, wires the routers.
 
     cd backend && uv run uvicorn app.main:app --port 8100
 
+    The README's command adds --reload, so code changes restart it.
+
 WHY THIS EXISTS
     One place where the application is assembled, and nothing else. The
     endpoints live in routes/, so this file reads as an index of what the
