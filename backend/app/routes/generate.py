@@ -45,7 +45,7 @@ def stream_generation(
     query: Annotated[GenerateQuery, Query()], writer: WriterDep
 ) -> Iterable[ServerSentEvent]:
     """Stream the model's continuation of the prompt, one token per event."""
-    pieces = writer.stream(query.prompt, query.max_new_tokens, query.temperature)
+    pieces = writer.stream(query.prompt, query.length, query.temperature)
     for piece in pieces:
         # JSON-encoded on the wire, so newlines and leading spaces survive.
         yield ServerSentEvent(data=piece)

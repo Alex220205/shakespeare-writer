@@ -1,5 +1,6 @@
 """Tests for sampling, generation and checkpoints."""
 
+from itertools import islice
 from pathlib import Path
 
 import pytest
@@ -9,8 +10,10 @@ from shakespeare_model.config import CHECKPOINT_PATH, DATA_PATH
 from shakespeare_model.model import ShakespeareModel
 from shakespeare_model.tokenizer import train_tokenizer
 from shakespeare_model.writer import (
+    MAX_OVERRUN_CHARACTERS,
     Writer,
     generate_token_ids,
+    reply_is_finished,
     sample_next_token,
     save_checkpoint,
 )
@@ -53,46 +56,80 @@ def test_min_p_rules_out_tokens_far_less_likely_than_the_favourite() -> None:
 
 
 def test_streamed_pieces_join_up_to_the_decoded_reply(writer: Writer) -> None:
-    """The text sent piece by piece is exactly the text of the whole reply."""
+    """The text sent piece by piece is exactly the text of the tokens generated."""
     prompt_ids = writer.tokenizer.encode("ROMEO:\n").ids
     torch.manual_seed(1)
-    new_ids = list(generate_token_ids(writer.model, prompt_ids, 20, 0.8))
+    new_ids = list(islice(generate_token_ids(writer.model, prompt_ids, 0.8), 20))
 
     torch.manual_seed(1)
-    pieces = list(writer.stream("ROMEO:\n", max_new_tokens=20, temperature=0.8))
+    pieces = list(islice(writer.stream("ROMEO:\n", 1000, 0.8), 20))
 
-    assert len(pieces) == 20
     assert "".join(pieces) == writer.tokenizer.decode(new_ids)
 
 
-def test_only_the_end_of_a_long_prompt_is_read(writer: Writer) -> None:
-    """A prompt too long for the context is cut to its last tokens."""
-    # Records the token ids of every call to the model. Comparing replies
-    # instead is not enough: an untrained model's output barely moves with
-    # extra context, so the same seed draws the same tokens either way.
-    fed = []
+def test_a_reply_ends_only_once_long_enough_and_between_speeches() -> None:
+    """Mid-speech is never the end, and neither is a speech ending too early."""
+    long_mid_speech = "ROMEO:\nBut soft, what light through yonder window"
+    short_but_ended = "Adieu.\n\n"
+    long_and_ended = long_mid_speech + " breaks?\n\n"
 
-    def record(module: torch.nn.Module, args: tuple, output: object) -> None:
-        """Keep the ids passed to this forward call."""
-        fed.append(args[0][0].tolist())
+    assert not reply_is_finished(long_mid_speech, length=20)
+    assert not reply_is_finished(short_but_ended, length=20)
+    assert reply_is_finished(long_and_ended, length=20)
 
-    handle = writer.model.register_forward_hook(record)
+
+def test_a_speech_that_never_ends_is_cut_off_eventually() -> None:
+    """A model that never writes a blank line still stops, MAX_OVERRUN past length."""
+    endless = "la " * 1000
+
+    assert not reply_is_finished(endless[: 99 + MAX_OVERRUN_CHARACTERS], length=100)
+    assert reply_is_finished(endless[: 100 + MAX_OVERRUN_CHARACTERS], length=100)
+
+
+def test_the_reply_carries_on_to_the_end_of_the_speech(
+    writer: Writer, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Past the requested length, the reply stops at the next blank line."""
+    script = "Good night, good night!\nParting is such sweet sorrow.\n\nROMEO:\nSleep"
+    script_ids = writer.tokenizer.encode(script).ids
+
+    def scripted(model: ShakespeareModel, prompt_ids: list[int], temperature: float):
+        """Yield the script's tokens instead of sampling."""
+        yield from script_ids
+
+    monkeypatch.setattr("shakespeare_model.writer.generate_token_ids", scripted)
+
+    reply = "".join(writer.stream("JULIET:\n", length=10, temperature=0.8))
+
+    # 10 characters are reached halfway through the first line; the reply
+    # still finishes Juliet's speech, and does not start Romeo's.
+    assert reply == "Good night, good night!\nParting is such sweet sorrow.\n\n"
+
+
+def test_the_model_never_reads_more_than_its_context_at_once(writer: Writer) -> None:
+    """A long prompt is cut to its end, and a long reply re-reads recent text."""
+    # (tokens already cached, ids fed) for every call to the model.
+    calls = []
+
+    def record(module: torch.nn.Module, args: tuple, kwargs: dict, output: object):
+        """Keep what this forward call was given."""
+        cache = kwargs.get("cache")
+        cached = cache[0][0].size(2) if cache else 0
+        calls.append((cached, args[0][0].tolist()))
+
+    handle = writer.model.register_forward_hook(record, with_kwargs=True)
     try:
-        list(generate_token_ids(writer.model, list(range(100)), 10, 0.8))
+        new_ids = list(
+            islice(generate_token_ids(writer.model, list(range(100)), 0.8), 100)
+        )
     finally:
         handle.remove()
 
-    assert fed[0] == list(range(100))[-(BLOCK_SIZE - 10) :]
-    tokens_seen = 0
-    for ids in fed:
-        tokens_seen += len(ids)
-    assert tokens_seen <= BLOCK_SIZE
-
-
-def test_a_reply_longer_than_the_context_is_refused(writer: Writer) -> None:
-    """Asking for block_size new tokens would leave no room for the prompt."""
-    with pytest.raises(ValueError, match="block size"):
-        list(generate_token_ids(writer.model, [1, 2, 3], BLOCK_SIZE, 0.8))
+    assert calls[0] == (0, list(range(100))[-BLOCK_SIZE:])
+    for cached, ids in calls:
+        assert cached + len(ids) <= BLOCK_SIZE
+    # A hundred new tokens is three times the context, and none were refused.
+    assert len(new_ids) == 100
 
 
 def test_a_saved_checkpoint_writes_the_same_text_when_loaded(
@@ -105,20 +142,22 @@ def test_a_saved_checkpoint_writes_the_same_text_when_loaded(
     loaded = Writer.from_checkpoint(path)
 
     torch.manual_seed(3)
-    original = "".join(writer.stream("JULIET:\n", 15, 0.8))
+    original = "".join(islice(writer.stream("JULIET:\n", 1000, 0.8), 15))
     torch.manual_seed(3)
-    reloaded = "".join(loaded.stream("JULIET:\n", 15, 0.8))
+    reloaded = "".join(islice(loaded.stream("JULIET:\n", 1000, 0.8), 15))
     assert reloaded == original
     assert loaded.model.output.weight is loaded.model.token_embedding.weight
 
 
-def test_the_committed_checkpoint_still_loads_and_writes() -> None:
-    """The trained model in the repository works with the current code."""
+def test_the_committed_checkpoint_writes_whole_speeches() -> None:
+    """The trained model in the repository loads, and ends where a speech ends."""
     # The web service serves this file. A change to the model's shape or to
     # the checkpoint format would break the demo while every other test,
     # which builds its own tiny model, still passed.
     writer = Writer.from_checkpoint(CHECKPOINT_PATH)
+    torch.manual_seed(0)
 
-    reply = "".join(writer.stream("ROMEO:\n", max_new_tokens=10, temperature=0.8))
+    reply = "".join(writer.stream("ROMEO:\n", length=100, temperature=0.8))
 
-    assert reply != ""
+    assert len(reply) >= 100
+    assert reply.endswith("\n\n")

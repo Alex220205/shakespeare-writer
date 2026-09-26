@@ -209,7 +209,7 @@ def main() -> None:
     # Sample from the file just written, not the model in memory, so a
     # checkpoint that does not load is found here rather than by the website.
     writer = Writer.from_checkpoint(CHECKPOINT_PATH)
-    print("ROMEO:\n" + "".join(writer.stream("ROMEO:\n", 200, temperature=0.8)))
+    print("ROMEO:\n" + "".join(writer.stream("ROMEO:\n", 500, temperature=0.8)))
 
 
 if __name__ == "__main__":

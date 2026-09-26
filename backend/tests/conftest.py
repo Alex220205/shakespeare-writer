@@ -44,8 +44,14 @@ def tiny_writer() -> Writer:
 
 
 @pytest.fixture
-def client(tiny_writer: Writer) -> Iterator[TestClient]:
+def client(
+    tiny_writer: Writer, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[TestClient]:
     """Return a client for an API serving the tiny model."""
+    # An untrained model never writes the blank line that ends a speech, so
+    # every reply would run the full 1000-character overrun. A short one keeps
+    # the suite fast; the overrun rule itself is tested in model/tests.
+    monkeypatch.setattr("shakespeare_model.writer.MAX_OVERRUN_CHARACTERS", 20)
     app.dependency_overrides[get_writer_if_trained] = lambda: tiny_writer
     with TestClient(app) as test_client:
         yield test_client

@@ -21,6 +21,14 @@ WHAT CHANGED AND WHY
       Transformers, vLLM and SGLang). A token less than MIN_P times as likely
       as the favourite is ruled out. When the model is confident that removes
       almost everything; when it is unsure, many options stay open.
+    - A reply runs to about the length asked for, then carries on until the
+      speech it is in has ended, so it never stops halfway through a word.
+      In the corpus a blank line ends every speech; the next starts with a
+      speaker's name.
+    - Replies are not limited by the context. When the cache holds the
+      block_size tokens the model was trained to read, generation re-reads
+      the most recent half with a fresh cache, as train.py's
+      idx[:, -block_size:] crop did.
     - The weights, the model's shape and its tokenizer travel together in one
       checkpoint, loaded with weights_only=True, which refuses to run any
       pickled code a tampered file might contain.
@@ -37,6 +45,11 @@ from shakespeare_model.model import ShakespeareModel
 
 # The min-p paper recommends 0.05 to 0.1. Lower keeps more variety.
 MIN_P = 0.05
+
+# How far past the requested length a reply may run while it waits for the
+# speech to end. Generated speeches are usually a few lines, so this only
+# guards against a model that never finishes one.
+MAX_OVERRUN_CHARACTERS = 1000
 
 
 def sample_next_token(
@@ -56,34 +69,40 @@ def sample_next_token(
 
 @torch.no_grad()
 def generate_token_ids(
-    model: ShakespeareModel,
-    prompt_ids: list[int],
-    max_new_tokens: int,
-    temperature: float,
+    model: ShakespeareModel, prompt_ids: list[int], temperature: float
 ) -> Iterator[int]:
-    """Yield new token ids one at a time, continuing the prompt."""
-    if max_new_tokens >= model.block_size:
-        raise ValueError(
-            f"max_new_tokens must be below the model's block size of "
-            f"{model.block_size}, to leave room for the prompt"
-        )
-
-    # Prompt and reply together must fit in the block_size tokens the model
-    # was trained on. Like train.py's idx[:, -block_size:], a prompt that is
-    # too long loses its beginning.
-    room_for_prompt = model.block_size - max_new_tokens
-    prompt_ids = prompt_ids[-room_for_prompt:]
-
+    """Yield new token ids one at a time, continuing the prompt, until stopped."""
     device = model.token_embedding.weight.device
-    idx = torch.tensor([prompt_ids], dtype=torch.long, device=device)
+
+    # Every id so far, kept so the context can be re-read when the cache
+    # fills. A prompt longer than the context loses its beginning.
+    ids = list(prompt_ids[-model.block_size :])
+    idx = torch.tensor([ids], dtype=torch.long, device=device)
     cache = []
-    for _ in range(max_new_tokens):
+    while True:
         # The first pass reads the whole prompt into the cache. From then on,
         # idx is only the token just chosen.
         logits, cache = model(idx, cache=cache)
         next_token = sample_next_token(logits[:, -1, :], temperature)
-        yield next_token.item()
-        idx = next_token
+        token_id = next_token.item()
+        ids.append(token_id)
+        yield token_id
+
+        # The model has only learned to read block_size tokens at once. When
+        # the cache is full, start a fresh one from the most recent half.
+        if cache[0][0].size(2) >= model.block_size:
+            recent = ids[-(model.block_size // 2) :]
+            idx = torch.tensor([recent], dtype=torch.long, device=device)
+            cache = []
+        else:
+            idx = next_token
+
+
+def reply_is_finished(reply: str, length: int) -> bool:
+    """Return True once the reply is long enough and its last speech has ended."""
+    if len(reply) >= length + MAX_OVERRUN_CHARACTERS:
+        return True
+    return len(reply) >= length and reply.endswith("\n\n")
 
 
 def save_checkpoint(path: Path, model: ShakespeareModel, tokenizer: Tokenizer) -> None:
@@ -124,13 +143,13 @@ class Writer:
         tokenizer = Tokenizer.from_str(checkpoint["tokenizer"])
         return cls(model, tokenizer)
 
-    def stream(
-        self, prompt: str, max_new_tokens: int, temperature: float
-    ) -> Iterator[str]:
-        """Yield the continuation of the prompt, one token's text at a time."""
+    def stream(self, prompt: str, length: int, temperature: float) -> Iterator[str]:
+        """Yield at least `length` characters a token at a time, to a speech's end."""
         prompt_ids = self.tokenizer.encode(prompt).ids
-        new_ids = generate_token_ids(
-            self.model, prompt_ids, max_new_tokens, temperature
-        )
-        for token_id in new_ids:
-            yield self.tokenizer.decode([token_id])
+        reply = ""
+        for token_id in generate_token_ids(self.model, prompt_ids, temperature):
+            piece = self.tokenizer.decode([token_id])
+            yield piece
+            reply += piece
+            if reply_is_finished(reply, length):
+                return

@@ -24,18 +24,22 @@ def read_events(body: str) -> list[tuple[str, object]]:
     return events
 
 
-def test_generate_streams_one_event_per_token_then_done(client: TestClient) -> None:
-    """Five tokens arrive as five text events, followed by a done event."""
-    response = client.get("/generate", params={"prompt": "ROMEO:", "max_new_tokens": 5})
+def test_generate_streams_text_events_then_one_done(client: TestClient) -> None:
+    """At least `length` characters arrive as text events, then a single done."""
+    response = client.get("/generate", params={"prompt": "ROMEO:", "length": 100})
 
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/event-stream")
     events = read_events(response.text)
     names = [name for name, _ in events]
-    assert names == ["message", "message", "message", "message", "message", "done"]
-    for _, data in events[:5]:
+    assert names[-1] == "done"
+    assert set(names[:-1]) == {"message"}
+
+    text = ""
+    for _, data in events[:-1]:
         assert isinstance(data, str)
-        assert data != ""
+        text += data
+    assert len(text) >= 100
 
 
 def test_an_empty_prompt_is_rejected(client: TestClient) -> None:
@@ -56,9 +60,20 @@ def test_a_temperature_outside_the_allowed_range_is_rejected(
         assert response.status_code == 422
 
     response = client.get(
-        "/generate",
-        params={"prompt": "ROMEO:", "temperature": 1.5, "max_new_tokens": 3},
+        "/generate", params={"prompt": "ROMEO:", "temperature": 1.5, "length": 100}
     )
+    assert response.status_code == 200
+
+
+def test_a_length_outside_the_allowed_range_is_rejected(client: TestClient) -> None:
+    """50 and 5000 characters are refused, and the longest allowed, 1500, runs."""
+    for length in (50, 5000):
+        response = client.get(
+            "/generate", params={"prompt": "ROMEO:", "length": length}
+        )
+        assert response.status_code == 422
+
+    response = client.get("/generate", params={"prompt": "ROMEO:", "length": 1500})
     assert response.status_code == 200
 
 

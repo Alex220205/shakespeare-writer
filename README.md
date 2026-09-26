@@ -114,7 +114,7 @@ This takes about 50 minutes on a laptop CPU, prints the loss as it goes, overwri
 | Endpoint | Returns |
 |---|---|
 | `GET /health` | `{"status": "ok", "model": "loaded", "version": "0.1.0"}`, or `degraded` / `missing` when no model has been trained |
-| `GET /generate?prompt=ROMEO:&temperature=0.8&max_new_tokens=200` | A `text/event-stream`: one event per token of text, then a `done` event. 422 for an invalid query, 503 when no model has been trained |
+| `GET /generate?prompt=ROMEO:&temperature=0.8&length=500` | A `text/event-stream`: one event per token of text, then a `done` event. It writes at least `length` characters (100–1500), then finishes the speech it is in, so it never stops mid-word. 422 for an invalid query, 503 when no model has been trained |
 
 ## Tests
 

@@ -17,11 +17,12 @@ class GenerateQuery(BaseModel):
         le=1.5,
         description="Lower is safer and more repetitive; higher is more inventive.",
     )
-    # At most 200, because the model reads 256 tokens at once and the prompt
-    # needs the rest. writer.py refuses anything that leaves no room.
-    max_new_tokens: int = Field(
-        default=200,
-        ge=1,
-        le=200,
-        description="How many tokens to write. A token is about 2.4 characters.",
+    length: int = Field(
+        default=500,
+        ge=100,
+        le=1500,
+        description=(
+            "Roughly how many characters to write. The model then finishes the "
+            "speech it is in, so the reply usually runs a little longer."
+        ),
     )
