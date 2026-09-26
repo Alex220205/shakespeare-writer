@@ -10,7 +10,7 @@ const STATUS_MESSAGES = {
   checking: 'Checking the model…',
   loaded: 'Model loaded. Pick an opening or write your own.',
   missing: 'No trained model yet. Run training, then restart the API.',
-  offline: 'Cannot reach the API. Is it running on port 8000?',
+  offline: 'Cannot reach the API. Is it running on port 8100?',
 }
 
 export default function App() {

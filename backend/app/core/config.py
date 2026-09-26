@@ -27,9 +27,10 @@ class Settings(BaseSettings):
     """Settings for the web service, read from the environment."""
 
     # Comma-separated in the environment, because environment variables are
-    # strings. The default is the Vite dev server. A wildcard would work and
-    # never be noticed in development, which is why it is not the default.
-    cors_origins: str = "http://localhost:5173"
+    # strings. The default is the Vite dev server, on port 5180 (see
+    # frontend/vite.config.js). A wildcard would work and never be noticed
+    # in development, which is why it is not the default.
+    cors_origins: str = "http://localhost:5180"
 
     # The checkpoint committed to the repository, unless told otherwise.
     checkpoint_path: Path = CHECKPOINT_PATH

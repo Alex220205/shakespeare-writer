@@ -78,17 +78,19 @@ Needs [uv](https://docs.astral.sh/uv/) and Node 22 or later. A trained model is 
 ```bash
 uv sync --all-packages
 
-# Terminal 1: the API, on http://localhost:8000
+# Terminal 1: the API, on http://localhost:8100
 cd backend
-uv run uvicorn app.main:app
+uv run uvicorn app.main:app --port 8100
 
-# Terminal 2: the page, on http://localhost:5173
+# Terminal 2: the page, on http://localhost:5180
 cd frontend
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173, pick an opening or type your own, and press Generate. The API's own documentation is at http://localhost:8000/docs.
+Open http://localhost:5180, pick an opening or type your own, and press Generate. The API's own documentation is at http://localhost:8100/docs.
+
+The ports are 8100 and 5180 rather than uvicorn's and Vite's defaults (8000 and 5173), so the project can run beside others that use those.
 
 ### Retraining
 
@@ -97,15 +99,15 @@ cd model
 uv run python -m shakespeare_model.train
 ```
 
-This takes about 35 minutes on a laptop CPU, prints the loss as it goes, overwrites `model/checkpoints/shakespeare.pt` whenever validation loss improves, and ends with a sample. Restart the API afterwards so it loads the new model. Every hyperparameter is a constant in [config.py](model/shakespeare_model/config.py).
+This takes about 50 minutes on a laptop CPU, prints the loss as it goes, overwrites `model/checkpoints/shakespeare.pt` whenever validation loss improves, and ends with a sample. Restart the API afterwards so it loads the new model. Every hyperparameter is a constant in [config.py](model/shakespeare_model/config.py).
 
 ### Configuration
 
 | Variable | Default | Read by |
 |---|---|---|
-| `CORS_ORIGINS` | `http://localhost:5173` | API: comma-separated origins allowed to call it |
+| `CORS_ORIGINS` | `http://localhost:5180` | API: comma-separated origins allowed to call it |
 | `CHECKPOINT_PATH` | `model/checkpoints/shakespeare.pt` | API: the model to serve |
-| `VITE_API_URL` | `http://localhost:8000` | Page, at build time: where the API is |
+| `VITE_API_URL` | `http://localhost:8100` | Page, at build time: where the API is |
 
 ## API
 

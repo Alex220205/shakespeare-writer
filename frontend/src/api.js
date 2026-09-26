@@ -6,8 +6,8 @@
  */
 
 // Vite replaces import.meta.env.VITE_API_URL at build time. The fallback is
-// the API's address when run locally with uvicorn's defaults.
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+// the API's address when run as the README says, on port 8100.
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8100'
 
 // fetch has no default timeout. A server that accepts the connection and never
 // answers would leave the status line saying "Checking…" forever.

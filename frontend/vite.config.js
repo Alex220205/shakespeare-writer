@@ -12,8 +12,11 @@ export default defineConfig({
   plugins: [react()],
 
   server: {
-    // The port the API's default CORS_ORIGINS allows.
-    port: 5173,
+    // Not Vite's default 5173, which other projects on the same machine are
+    // likely to be using. The API's default CORS_ORIGINS allows this port;
+    // strictPort makes a clash an error rather than a silent move to a port
+    // the API would then refuse.
+    port: 5180,
     strictPort: true,
   },
 

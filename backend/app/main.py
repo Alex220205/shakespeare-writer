@@ -1,7 +1,7 @@
 """
 FastAPI entry point: builds the application, applies CORS, wires the routers.
 
-    cd backend && uv run uvicorn app.main:app
+    cd backend && uv run uvicorn app.main:app --port 8100
 
 WHY THIS EXISTS
     One place where the application is assembled, and nothing else. The
@@ -9,8 +9,8 @@ WHY THIS EXISTS
     service serves.
 
 WHAT'S NEW
-    CORS, because the page is served by Vite on port 5173 and the API runs on
-    8000, so every request from the page is cross-origin. Only GET is
+    CORS, because the page is served by Vite on port 5180 and the API runs on
+    8100, so every request from the page is cross-origin. Only GET is
     allowed, because it is the only method the API has.
 """
 
