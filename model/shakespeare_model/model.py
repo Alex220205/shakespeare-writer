@@ -5,7 +5,7 @@ WHY THIS EXISTS
     Maps a sequence of token ids to a prediction of the next token at every
     position. Training and the web page are plumbing around this.
 
-WHAT train.py DID
+WHAT THE BASELINE DID
     GPT-2's 2019 design. A learned table of position embeddings added to the
     token embeddings, LayerNorm, six separate `Head` modules each computing
     softmax(QK^T)V by hand, a ReLU feed-forward four times as wide, a separate
@@ -90,7 +90,7 @@ class Attention(nn.Module):
         self.q_norm = nn.RMSNorm(self.head_dim)
         self.k_norm = nn.RMSNorm(self.head_dim)
         # Dropout on the output only, not on the attention weights as
-        # train.py did. The weights are B x heads x T x T values per layer,
+        # the baseline did. The weights are B x heads x T x T values per layer,
         # and drawing a random mask over them took a third of every training
         # step on a laptop CPU. The output is B x T x n_embd, 32 times fewer.
         self.output_dropout = nn.Dropout(dropout)

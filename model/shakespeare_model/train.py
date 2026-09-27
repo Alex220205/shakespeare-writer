@@ -6,7 +6,7 @@ Training: tokenizer, model, and the best checkpoint.
 WHY THIS EXISTS
     Turns the corpus into a checkpoint the web service can load.
 
-WHAT train.py DID
+WHAT THE BASELINE DID
     The same outline, which is kept: read the text, encode it, split it 90/10,
     sample random windows, average the loss over many batches every so often,
     and print a sample at the end. It trained with AdamW at a fixed 1e-3,
@@ -24,7 +24,7 @@ WHAT CHANGED AND WHY
       improvement happens.
     - Gradient clipping, so one bad batch cannot throw the weights off.
     - Validation loss is also reported in bits per byte, which does not
-      depend on the tokenizer, so this model and train.py can be compared.
+      depend on the tokenizer, so this model and the baseline can be compared.
     - The checkpoint is saved whenever validation loss improves. A small
       corpus is memorised eventually, and the best model is rarely the last.
 """
@@ -104,7 +104,7 @@ def estimate_loss(
 def bits_per_byte(loss: float, token_count: int, byte_count: int) -> float:
     """Convert a loss in nats per token into bits per byte of text."""
     # Loss per token cannot be compared between tokenizers: a token here is
-    # 2.4 characters on average, and in train.py it was one. Spreading the
+    # 2.4 characters on average, and in the baseline it was one. Spreading the
     # loss over the bytes of the text removes that difference.
     return loss * token_count / byte_count / math.log(2)
 

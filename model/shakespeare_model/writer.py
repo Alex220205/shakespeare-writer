@@ -6,7 +6,7 @@ WHY THIS EXISTS
     feeds it back, and repeats. It also saves and loads the one file that
     holds a trained model, which is what the web service reads.
 
-WHAT train.py DID
+WHAT THE BASELINE DID
     `generate` ran the whole context through the model for every new token,
     kept only the last position's logits, and sampled from the full softmax
     at temperature 1. Every step recomputed keys and values for tokens that
@@ -27,7 +27,7 @@ WHAT CHANGED AND WHY
       speaker's name.
     - Replies are not limited by the context. When the cache holds the
       block_size tokens the model was trained to read, generation re-reads
-      the most recent half with a fresh cache, as train.py's
+      the most recent half with a fresh cache, as the baseline's
       idx[:, -block_size:] crop did.
     - The weights, the model's shape and its tokenizer travel together in one
       checkpoint, loaded with weights_only=True, which refuses to run any

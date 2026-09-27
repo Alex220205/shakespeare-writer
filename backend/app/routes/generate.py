@@ -6,7 +6,7 @@ WHY THIS EXISTS
     every chat interface does, rather than a spinner followed by a wall of
     text.
 
-WHAT train.py DID
+WHAT THE BASELINE DID
     print(decode(m.generate(context, max_new_tokens=500)[0].tolist())):
     nothing appeared until all 500 characters were done.
 

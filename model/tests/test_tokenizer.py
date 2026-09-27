@@ -30,7 +30,7 @@ def test_vocabulary_is_the_requested_size(tokenizer: Tokenizer) -> None:
 
 def test_text_outside_the_corpus_round_trips_exactly(tokenizer: Tokenizer) -> None:
     """Accents, emoji and curly quotes encode and decode back unchanged."""
-    # train.py raised KeyError on the first character here, because it had
+    # The baseline raised KeyError on the first character here, because it had
     # never seen it. Byte-level BPE falls back to raw bytes instead.
     text = "Café, naïve — “quoth” the 🎭 ROMEO:\n\tΩ"
 
@@ -48,6 +48,6 @@ def test_shakespeare_needs_far_fewer_tokens_than_characters(
     ids = tokenizer.encode(held_out).ids
 
     # About 1.9 characters per token for this small vocabulary, and 2.4 for
-    # the full 1024-token one. train.py was exactly 1.0.
+    # the full 1024-token one. The baseline's was exactly 1.0.
     assert len(ids) < 0.6 * len(held_out)
     assert tokenizer.decode(ids) == held_out

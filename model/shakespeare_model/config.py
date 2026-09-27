@@ -5,10 +5,10 @@ WHY THIS EXISTS
     Every number that shapes the model or its training is here, so tuning a
     run is editing a number rather than reading the code.
 
-WHAT train.py DID
+WHAT THE BASELINE DID
     The same thing, at the top of the one file: batch_size, block_size,
-    n_embd and the rest as globals, plus the corpus path hardcoded to
-    /home/alex/textfiles/input.txt.
+    n_embd and the rest as globals, plus the corpus path hardcoded to a
+    folder on one particular machine.
 
 WHAT CHANGED AND WHY
     The constants moved into their own module because four modules read them
@@ -38,7 +38,7 @@ VOCAB_SIZE = 1024
 
 # --- Model shape --------------------------------------------------------------
 # Sized to train in about 50 minutes on a laptop CPU: 1.3M parameters, about
-# five times train.py's.
+# five times the baseline's.
 BLOCK_SIZE = 256  # tokens of context, about 600 characters
 N_EMBD = 128
 N_LAYER = 6
@@ -51,7 +51,7 @@ DROPOUT = 0.2  # a 1 MB corpus is easy to memorise
 BATCH_SIZE = 16
 MAX_ITERS = 1400  # about 2 seconds each on an i3-1215U
 EVAL_INTERVAL = 200
-EVAL_ITERS = 20  # batches averaged per estimate; train.py used 200 on a GPU
+EVAL_ITERS = 20  # batches averaged per estimate; the baseline used 200
 
 # Warmup-stable-decay: ramp up over WARMUP_ITERS, hold, then fall linearly to
 # zero over the last DECAY_FRACTION of training.

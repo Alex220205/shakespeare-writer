@@ -7,7 +7,7 @@ WHY THIS EXISTS
     and where the trained model is.
 
 WHAT CHANGED AND WHY
-    train.py had no settings; its one path was hardcoded to a home folder.
+    The baseline's script had no settings; its one path was hardcoded to a home folder.
     Here each setting has a default that works for local development, and an
     environment variable of the same name (CORS_ORIGINS, CHECKPOINT_PATH)
     overrides it.

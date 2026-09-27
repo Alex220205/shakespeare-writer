@@ -6,7 +6,7 @@ WHY THIS EXISTS
     the result means only the first request pays for it.
 
 WHAT CHANGED AND WHY
-    train.py generated text once, at the end of training, in the same
+    The baseline's script generated text once, at the end of training, in the same
     process. A web service has to load a model it did not train, and cope
     with there being none yet: /health reports that as "missing", and
     /generate answers 503 with instructions rather than crashing.

@@ -4,7 +4,7 @@ A byte-level BPE tokenizer, trained on the corpus it will encode.
 WHY THIS EXISTS
     The model reads integers, not text. This module turns one into the other.
 
-WHAT train.py DID
+WHAT THE BASELINE DID
     One integer per character: `chars = sorted(list(set(text)))` gave 65 of
     them, looked up through `stoi` and `itos`. "gentleman" was nine separate
     predictions for the model, and any character outside those 65 (an accent,
