@@ -33,7 +33,7 @@ Each module's docstring explains its part of this table in more detail: [model.p
 
 Both models trained on the same laptop CPU (Intel i3-1215U, no GPU) from the same 1 MB of text. Lower bits per byte is better: it measures how surprised the model is by Shakespeare it has not seen, and unlike loss per token it can be compared across tokenizers.
 
-The baseline is a classic character-level GPT at small settings: 60-dimensional embeddings, 6 layers of 6 attention heads, a 128-character context, and 5000 AdamW steps on batches of 32. Its script is not part of this repository.
+The baseline is a classic character-level GPT at small settings: 60-dimensional embeddings, 6 layers of 6 attention heads, a 128-character context, and 5000 AdamW steps on batches of 32. Its training script is not part of this repository.
 
 | | Classic GPT baseline (character-level) | Shakespeare Writer |
 |---|---|---|
@@ -148,7 +148,7 @@ backend/     FastAPI: GET /health and GET /generate
 frontend/    React + Vite: the page
 ```
 
-## Acknowledgements
+## Data
 
 The corpus is Tiny Shakespeare, 1.1 MB of Shakespeare's plays, from the [char-rnn](https://github.com/karpathy/char-rnn) repository.
 

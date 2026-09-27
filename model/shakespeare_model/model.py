@@ -6,10 +6,10 @@ WHY THIS EXISTS
     position. Training and the web page are plumbing around this.
 
 WHAT THE BASELINE DID
-    GPT-2's 2019 design. A learned table of position embeddings added to the
-    token embeddings, LayerNorm, six separate `Head` modules each computing
-    softmax(QK^T)V by hand, a ReLU feed-forward four times as wide, a separate
-    output layer, and a bias on every linear layer.
+    The classic small-GPT design. A learned table of position embeddings
+    added to the token embeddings, LayerNorm, six separate `Head` modules
+    each computing softmax(QK^T)V by hand, a ReLU feed-forward four times as
+    wide, a separate output layer, and a bias on every linear layer.
 
 WHAT CHANGED AND WHY
     The parts current open models (Llama 3 and 4, Qwen3, Gemma 3, OLMo 2)
